@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import './App.css';
 
-const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
-const BASE_URL = 'https://api.themoviedb.org/3';
 const IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 
 function App() {
@@ -18,12 +16,10 @@ function App() {
   useEffect(() => {
     async function fetchMovies() {
       try {
-        const response = await fetch(
-          `${BASE_URL}/movie/popular?api_key=${API_KEY}&language=en-US&page=1`
-        );
+        const response = await fetch('https://movie-app-backend-sigma.vercel.app/api/movies/');
         if (!response.ok) throw new Error(`API error: ${response.status}`);
         const data = await response.json();
-        setAllMovies(data.results);
+        setAllMovies(data);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -40,8 +36,8 @@ function App() {
       setDetailsLoading(true);
       try {
         const response = await fetch(
-          `${BASE_URL}/movie/${selectedMovie.id}?api_key=${API_KEY}&language=en-US`
-        );
+  `https://movie-app-backend-sigma.vercel.app/api/movies/${selectedMovie.id}`
+);
         if (!response.ok) throw new Error(`API error: ${response.status}`);
         const data = await response.json();
         setDetails(data);

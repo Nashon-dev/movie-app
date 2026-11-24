@@ -4,22 +4,32 @@ import './App.css';
 const IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 
 function App() {
+  // 1. State for movies, search, loading, and errors
   const [allMovies, setAllMovies] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // 2. State for pagination
+  const [page, setPage] = useState(1);
+
+  // 3. State for movie details
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [details, setDetails] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
 
+  // 4. Fetch movies when the page changes
   useEffect(() => {
     async function fetchMovies() {
+      setLoading(true); 
       try {
-        const response = await fetch('https://movie-app-backend-sigma.vercel.app/api/movies/');
+        const response = await fetch(
+          `https://movie-app-backend-sigma.vercel.app/api/movies?page=${page}`
+        );
         if (!response.ok) throw new Error(`API error: ${response.status}`);
+        
         const data = await response.json();
-        setAllMovies(data);
+        setAllMovies(data.movies); // Backend sends { movies: [...], totalPages: ... }
       } catch (err) {
         setError(err.message);
       } finally {
@@ -27,8 +37,9 @@ function App() {
       }
     }
     fetchMovies();
-  }, []);
+  }, [page]); // Re-run when page state changes
 
+  // 5. Fetch details when a movie is selected
   useEffect(() => {
     if (!selectedMovie) return;
 
@@ -36,8 +47,8 @@ function App() {
       setDetailsLoading(true);
       try {
         const response = await fetch(
-  `https://movie-app-backend-sigma.vercel.app/api/movies/${selectedMovie.id}`
-);
+          `https://movie-app-backend-sigma.vercel.app/api/movies/${selectedMovie.id}`
+        );
         if (!response.ok) throw new Error(`API error: ${response.status}`);
         const data = await response.json();
         setDetails(data);
@@ -50,6 +61,7 @@ function App() {
     fetchDetails();
   }, [selectedMovie]);
 
+  // 6. Filter movies based on search
   const filteredMovies = allMovies.filter((movie) =>
     movie.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -57,6 +69,9 @@ function App() {
   if (loading) return <p className="status">Loading movies...</p>;
   if (error) return <p className="status error">Error: {error}</p>;
 
+  // ==========================================
+  // DETAIL VIEW (When you click a movie)
+  // ==========================================
   if (selectedMovie) {
     return (
       <div className="app">
@@ -87,7 +102,10 @@ function App() {
     );
   }
 
-    return (
+  // ==========================================
+  // MAIN GRID VIEW (Homepage)
+  // ==========================================
+  return (
     <div className="app">
       <h1>Popular Movies</h1>
 
@@ -123,9 +141,29 @@ function App() {
         </div>
       )}
 
+      {/* Pagination Buttons - Now in the correct place! */}
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '2rem' }}>
+        <button 
+          className="back-btn" 
+          disabled={page === 1} 
+          onClick={() => setPage(page - 1)}
+        >
+          ← Previous
+        </button>
+        
+        <span style={{ fontWeight: 'bold' }}>Page {page}</span>
+        
+        <button 
+          className="back-btn" 
+          onClick={() => setPage(page + 1)}
+        >
+          Next →
+        </button>
+      </div>
+
       <footer className="credit">Movie data from TMDB</footer>
     </div>
   );
-  }
+}
 
 export default App;
